@@ -9,74 +9,76 @@ public class Menu {
     }
 
     public void run() {
+        int choice;
         try (Scanner scanner = new Scanner(System.in)) {
             while (true) {
-                System.out.println("1. Add a user");
-                System.out.println("2. View user balances");
-                System.out.println("3. Perform a transfer");
-                System.out.println("4. View all transactions for a specific user");
-                int i = 5;
-                // if (PROFILE_MOD.equals("dev")) {
-                System.out.println("5. DEV – remove a transfer by ID");
-                System.out.println("6. DEV – check transfer validity");
-                i = 7;
-                // }
-                System.out.println(i + ". Finish execution");
-                int choice = scanner.nextInt();
+                printMenu();
+                choice = readIntToValid(scanner);
                 scanner.nextLine();
-                int id;
+                int id, amount;
                 switch (choice) {
-                    case 1:
+                    case 1 -> {
                         System.out.println("Enter a user name and a balance");
                         String name = scanner.next();
-                        int balance = scanner.nextInt();
+                        int balance = readIntToValid(scanner);
                         scanner.nextLine();
                         TRANSACTIONS_SERVICE.addUser(UserIdsGenerator.getInstance().generateId(), name, balance);
-                        System.out.println("User whith id = "
-                                + TRANSACTIONS_SERVICE.getUsersList()
-                                        .getByIndex(TRANSACTIONS_SERVICE.getUsersList().size() - 1).getIdentifier()
+                        System.out.println("User with id = " + TRANSACTIONS_SERVICE.getUsersList()
+                                .getByIndex(TRANSACTIONS_SERVICE.getUsersList().size() - 1).getIdentifier()
                                 + " added");
-                        break;
-                    case 2:
+                    }
+                    case 2 -> {
                         System.out.println("Enter a user ID");
-                        id = scanner.nextInt();
+                        id = readIntToValid(scanner);
                         scanner.nextLine();
                         System.out.println(TRANSACTIONS_SERVICE.getUsersList().getById(id).getName() + " - "
                                 + TRANSACTIONS_SERVICE.getUsersList().getById(id).getBalance());
-                        break;
-                    case 3:
-                        System.out.println("Enter a sender ID, a recipient ID, and a transfer amount");
-                        int senderId = scanner.nextInt();
-                        int recipientId = scanner.nextInt();
-                        int amount = scanner.nextInt();
-                        scanner.nextLine();
-                        TRANSACTIONS_SERVICE.addTransaction(recipientId, senderId, amount);
-                        System.out.println("The transfer is completed");
-                        break;
-                    case 4:
+                    }
+                    case 3 -> {
+                        boolean inputValid = false;
+                        while (!inputValid) {
+                            System.out.println("Enter a sender ID, a recipient ID, and a transfer amount");
+                            int senderId = readIntToValid(scanner);
+                            int recipientId = readIntToValid(scanner);
+                            amount = readIntToValid(scanner);
+                            scanner.nextLine();
+                            try {
+                                TRANSACTIONS_SERVICE.addTransaction(recipientId, senderId, amount);
+                                System.out.println("The transfer is completed");
+                                inputValid = true;
+                            } catch (IllegalTransactionException e) {
+                                System.out.println(e.getMessage());
+                                System.out.println("Enter 1 to repeat entry or 0 to exit this item");
+                                if (readIntToValid(scanner) != 1) {
+                                    inputValid = true;
+                                }
+                            }
+                        }
+                    }
+                    case 4 -> {
                         System.out.println("Enter a user ID");
-                        id = scanner.nextInt();
+                        id = readIntToValid(scanner);
                         scanner.nextLine();
                         for (Transaction transaction : TRANSACTIONS_SERVICE.getTransactionsByUserId(id)) {
                             System.out.println(transaction);
                         }
-                        break;
-                    case 5:
+                    }
+                    case 5 -> {
                         if (PROFILE_MOD.equals("dev")) {
                             System.out.println("Enter a user ID and a transfer ID");
-                            int userId = scanner.nextInt();
+                            int userId = readIntToValid(scanner);
                             UUID transferId = UUID.fromString(scanner.next());
-                            amount = TRANSACTIONS_SERVICE.getUsersList().getByIndex(userId).getTransactionsList()
+                            amount = TRANSACTIONS_SERVICE.getUsersList().getById(userId).getTransactionsList()
                                     .get(transferId).getTransferAmount();
                             TRANSACTIONS_SERVICE.removeTransaction(userId, transferId);
                             System.out.println(
-                                    "Transfer to " + TRANSACTIONS_SERVICE.getUsersList().getByIndex(userId).getName()
+                                    "Transfer to " + TRANSACTIONS_SERVICE.getUsersList().getById(userId).getName()
                                             + "(id = " + userId + ") " + amount + " removed");
                         } else {
                             return;
                         }
-                        break;
-                    case 6:
+                    }
+                    case 6 -> {
                         if (PROFILE_MOD.equals("dev")) {
                             System.out.println("Check results:");
                             for (Transaction transaction : TRANSACTIONS_SERVICE.getUnpairedTransactions()) {
@@ -91,15 +93,43 @@ public class Menu {
                                 System.out.println(transaction.getTransferAmount());
                             }
                         }
-                        break;
-                    case 7:
+                    }
+                    case 7 -> {
                         return;
-                    default:
-                        System.out.println("Invalid choice");
-                        break;
+                    }
+                    default -> System.out.println("Invalid choice");
                 }
             }
         }
+    }
+
+    private void printMenu() {
+        System.out.println("1. Add a user");
+        System.out.println("2. View user balance");
+        System.out.println("3. Perform a transfer");
+        System.out.println("4. View all transactions for a specific user");
+        int i = 5;
+        if (PROFILE_MOD.equals("dev")) {
+            System.out.println("5. DEV – remove a transfer by ID");
+            System.out.println("6. DEV – check transfer validate");
+            i = 7;
+        }
+        System.out.println(i + ". Finish execution");
+    }
+
+    private int readIntToValid(Scanner scanner) {
+        boolean inputValid = false;
+        int value = 0;
+        while (!inputValid) {
+            if (scanner.hasNextInt()) {
+                value = scanner.nextInt();
+                inputValid = true;
+            } else {
+                System.out.println("Invalid input. Please try again.");
+                scanner.next();
+            }
+        }
+        return value;
     }
 
     private final TransactionsService TRANSACTIONS_SERVICE;

@@ -5,7 +5,7 @@ public class UsersArrayList implements UsersList {
     }
 
     @Override
-    public User getByIndex(int index) {
+    public User getByIndex(int index) throws IndexOutOfBoundsException {
         if (index >= 0 && index <= size) {
             return users[index];
         } else {

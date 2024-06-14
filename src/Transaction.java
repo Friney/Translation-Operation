@@ -56,11 +56,7 @@ public class Transaction {
         if (!IS_VALID) {
             outString = "Transaction not valid";
         } else {
-            if (TRANSFER_CATEGORY == Type_transaction.DEBITS) {
-                outString = "To ";
-            } else {
-                outString = "From ";
-            }
+            outString = "To ";
             outString += SENDER.getName() + "(id = " + SENDER.getIdentifier() + ") ";
 
             if (TRANSFER_CATEGORY == Type_transaction.DEBITS) {

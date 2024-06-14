@@ -24,7 +24,7 @@ public class TransactionsService {
         return USERS_LIST.getByIndex(index).getBalance();
     }
 
-    public void addTransaction(int receiverId, int senderId, int amount) {
+    public void addTransaction(int receiverId, int senderId, int amount) throws IllegalTransactionException {
         if (USERS_LIST.getById(senderId).getBalance() < amount) {
             throw new IllegalTransactionException("Sender doesn't have enough money");
         }
